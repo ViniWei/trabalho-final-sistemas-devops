@@ -12,6 +12,12 @@ async function storeMessages(userIdSend, userIdReceive, messages) {
     } 
 }
 
+async function getAllMessagesByUser(userId) {
+    const result = await axios.get(`${process.env.RECORD_API_ROUTE}/messages/${userId}`);
+    return result.data;
+}
+
 export default {
-    storeMessages
+    storeMessages,
+    getAllMessagesByUser
 }

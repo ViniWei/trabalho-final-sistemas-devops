@@ -35,7 +35,27 @@ async function messageWorker(req, res) {
     res.json(messages);
 }
 
+async function getAllMessagesByAUser(req, res) {
+    const userId = req.query.userId
+    const token = req.headers.authorization
+
+
+    if (await authService.authenticateUser(userId, token) !== true) {
+        return res.status(498).json({ msg: "not auth" });
+    }
+
+    try {
+        const result = await recordService.getAllMessagesByUser(userId);
+
+        res.json(result);
+    } catch (e) {
+        console.log(e);
+        res.status(500).send("Internal server error");
+    }
+}
+
 export default {
     sendMessage,
-    messageWorker
+    messageWorker,
+    getAllMessagesByAUser
 }
