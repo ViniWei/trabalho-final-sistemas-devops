@@ -1,6 +1,7 @@
 import queueService from "../services/queue.js";
 import authService from "../services/auth.js";
 import recordService from "../services/record.js";
+import redisClient from "../redisClient.js";
  
 async function sendMessage(req, res) {
     const { userIdSend, userIdReceive, message } = req.body;
@@ -45,9 +46,16 @@ async function getAllMessagesByAUser(req, res) {
     }
 
     try {
-        const result = await recordService.getAllMessagesByUser(userId);
+        let messages = await redisClient.get(userId + "getAllMessagesByUser");
 
-        res.json(result);
+        if (messages) {
+            return res.json(JSON.parse(messages));
+        }
+
+        messages = await recordService.getAllMessagesByUser(userId);
+        await redisClient.set(userId + "getAllMessagesByUser", JSON.stringify(messages), { EX: 20 });
+
+        res.json(messages);
     } catch (e) {
         console.log(e);
         res.status(500).send("Internal server error");
