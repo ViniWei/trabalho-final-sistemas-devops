@@ -50,10 +50,12 @@ services:
       - "3000:3000"
     environment:
       AUTH_API_ROUTE: http://auth_api:80
+      RABBITMQ_ROUTE: amqp://rabbitmq:5672
     depends_on:
       - mysql
       - redis
       - api_auth
+      - rabbitmq
     restart: always
 
   mysql:

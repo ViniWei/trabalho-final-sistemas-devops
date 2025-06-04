@@ -7,6 +7,6 @@ const app = express();
 app.use(express.json());
 
 app.post("/message", messageController.sendMessage);
-app.post("/message/worker", messageController.sendMessage);
+app.post("/message/worker", messageController.messageWorker);
 
 app.listen(port, () => {console.log("Listening on port:", port)} );
