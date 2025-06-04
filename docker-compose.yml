@@ -1,5 +1,5 @@
 services:
-  api:
+  api_auth:
     build:
       context: ./Auth-API
       dockerfile: Dockerfile
@@ -40,6 +40,20 @@ services:
       REDIS_PORT: 6379
     volumes:
       - ./Record-API:/app
+
+  api_send_receive:
+    build:
+      context: ./sendReceiveApi/
+      dockerfile: Dockerfile
+    container_name: send_receive_api
+    ports:
+      - "3000:3000"
+    environment:
+      AUTH_API_ROUTE: http://auth_api:80
+    depends_on:
+      - mysql
+      - redis
+      - api_auth
     restart: always
 
   mysql:

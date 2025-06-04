@@ -12,4 +12,12 @@ CREATE TABLE users (
   lastname VARCHAR(100),
   email VARCHAR(100) UNIQUE,
   password VARCHAR(255)
+)
+
+CREATE TABLE messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  message TEXT NOT NULL,
+  sender_id INT NOT NULL,
+  receiver_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
