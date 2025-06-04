@@ -1,5 +1,6 @@
 import queueService from "../services/queue.js";
 import authService from "../services/auth.js";
+import recordService from "../services/record.js";
  
 async function sendMessage(req, res) {
     const { userIdSend, userIdReceive, message } = req.body;
@@ -27,10 +28,11 @@ async function messageWorker(req, res) {
         return res.status(498).json({ msg: "not auth" });
     }
 
-    const result = await queueService.getAllMessagesFromQueue(`${userIdSend}${userIdReceive}`);
-    console.log("result:", result);
+    const messages = await queueService.getAllMessagesFromQueue(`${userIdSend}${userIdReceive}`);
 
-    res.json({ msg: "ok" });
+    await recordService.storeMessages(userIdSend, userIdReceive, messages);
+
+    res.json(messages);
 }
 
 export default {

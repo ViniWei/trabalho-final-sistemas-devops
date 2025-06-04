@@ -50,6 +50,7 @@ services:
       - "3000:3000"
     environment:
       AUTH_API_ROUTE: http://auth_api:80
+      RECORD_API_ROUTE: http://record_api:5000
       RABBITMQ_ROUTE: amqp://rabbitmq:5672
     depends_on:
       - mysql
