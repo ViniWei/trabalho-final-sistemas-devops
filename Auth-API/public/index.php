@@ -12,8 +12,12 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 $uri = str_replace(['/index.php', '/public'], '', $uri);
 
+$normalizedUri = $uri;
+if (preg_match('#^/user/\d+$#', $uri)) {
+    $normalizedUri = '/user/:id';
+}
 
-switch ("$method $uri") {
+switch ("$method $normalizedUri") {
     case 'POST /user':
         UserController::register();
         break;
@@ -29,19 +33,17 @@ switch ("$method $uri") {
     case 'GET /user/profile':
         UserController::getProfile();
         break;
+    case 'PUT /user/:id':
+        $id = basename($uri);
+        UserController::update($id);
+        break;
+    case 'DELETE /user/:id':
+        $id = basename($uri);
+        UserController::delete($id);
+        break;
     default:
-        if (preg_match('#^/user/(\d+)$#', $uri, $matches)) {
-            $id = $matches[1];
-            if ($method === 'PUT') {
-                UserController::update($id);
-            } elseif ($method === 'DELETE') {
-                UserController::delete($id);
-            } else {
-                http_response_code(405);
-                echo json_encode(['error' => 'Método não permitido']);
-            }
-        } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Rota não encontrada']);
-        }
+        http_response_code(404);
+        echo json_encode(['error' => 'Rota não encontrada']);
+        break;
 }
+

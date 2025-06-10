@@ -33,31 +33,6 @@ class UserController {
         echo json_encode(['message' => 'Usuário registrado com sucesso.']);
     }
 
-    public static function getProfile() {
-        $headers = apache_request_headers();
-        $authHeader = $headers['Authorization'] ?? '';
-
-        if (!str_starts_with($authHeader, 'Bearer ')) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Token ausente ou inválido.']);
-            return;
-        }
-
-        $token = str_replace('Bearer ', '', $authHeader);
-        $payload = JWT::decode($token);
-
-        if (!$payload) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Token inválido.']);
-            return;
-        }
-
-        echo json_encode([
-            'userId' => $payload->userId,
-            'email' => $payload->email
-        ]);
-    }
-
     public static function update($id) {
         $pdo = (new Database())->connect();
         $service = new UserService($pdo);

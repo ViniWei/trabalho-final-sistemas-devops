@@ -1,16 +1,14 @@
+version: '3.9'
+
 services:
-  api_auth:
+  auth_api:
     build:
       context: ./Auth-API
       dockerfile: Dockerfile
-    container_name: auth_api
     ports:
       - "8000:80"
-    depends_on:
-      - mysql
-      - redis
     environment:
-      DB_HOST: mysql
+      DB_HOST: db
       DB_PORT: 3306
       DB_NAME: auth_api
       DB_USER: root
@@ -19,20 +17,21 @@ services:
       REDIS_PORT: 6379
     volumes:
       - ./Auth-API:/var/www/html
+    depends_on:
+      - db
+      - redis
     restart: always
+    networks:
+      - chatnet
 
   record_api:
     build:
       context: ./Record-API
       dockerfile: Dockerfile
-    container_name: record_api
     ports:
       - "5000:5000"
-    depends_on:
-      - mysql
-      - redis
     environment:
-      MYSQL_HOST: mysql
+      MYSQL_HOST: db
       MYSQL_USER: root
       MYSQL_PASSWORD: senha
       MYSQL_DB: auth_api
@@ -40,29 +39,35 @@ services:
       REDIS_PORT: 6379
     volumes:
       - ./Record-API:/app
+    depends_on:
+      - db
+      - redis
+    restart: always
+    networks:
+      - chatnet
 
-  api_send_receive:
+  send_receive_api:
     build:
       context: ./sendReceiveApi/
       dockerfile: Dockerfile
-    container_name: send_receive_api
     ports:
       - "3000:3000"
     environment:
       AUTH_API_ROUTE: http://auth_api:80
       RECORD_API_ROUTE: http://record_api:5000
       RABBITMQ_ROUTE: amqp://rabbitmq:5672
-      REDIS_ROUTE: redis://auth_redis:6379
+      REDIS_ROUTE: redis://redis:6379
     depends_on:
-      - mysql
+      - db
       - redis
-      - api_auth
+      - auth_api
       - rabbitmq
     restart: always
+    networks:
+      - chatnet
 
-  mysql:
+  db:
     image: mysql:8.0
-    container_name: mysql
     environment:
       MYSQL_DATABASE: auth_api
       MYSQL_ROOT_PASSWORD: senha
@@ -70,37 +75,37 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - chatnet
 
   redis:
     image: redis:alpine
-    container_name: auth_redis
-    restart: always
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    restart: always
+    networks:
+      - chatnet
 
   rabbitmq:
-    image: rabbitmq:latest
-    container_name: rabbitmq
-    restart: always
+    image: rabbitmq:management
     ports:
-      - 5672:5672
-    configs:
-      - source: rabbitmq-plugins
-        target: /etc/rabbitmq/enabled_plugins
+      - "5672:5672"    
+      - "15672:15672"  
     volumes:
       - rabbitmq-lib:/var/lib/rabbitmq/
       - rabbitmq-log:/var/log/rabbitmq
-
-configs:
-  rabbitmq-plugins:
-    content: "[rabbitmq_management]."  
+    restart: always
+    networks:
+      - chatnet
 
 volumes:
   mysql_data:
   redis_data:
   rabbitmq-lib:
-    driver: local
   rabbitmq-log:
-    driver: local
+
+networks:
+  chatnet:
+    driver: bridge
